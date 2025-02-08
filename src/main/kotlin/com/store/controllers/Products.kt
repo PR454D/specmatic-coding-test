@@ -1,6 +1,7 @@
 package com.store.controllers
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.annotation.Nullable
 import jakarta.validation.Valid
 import jakarta.validation.constraints.*
 import org.springframework.http.HttpStatus
@@ -12,13 +13,14 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDateTime
 
-data class Product(
+data class ProductDetails(
     @JsonProperty("id") val id: Int,
     @JsonProperty("name") @field:Pattern(
         regexp = "(?!true|false|null)[a-zA-Z]+", message = "should be a string"
     ) @field:NotEmpty(message = "Name cannot be empty") val name: String,
     @JsonProperty("type") val type: ProductType,
     @JsonProperty("inventory") @field:NotNull @field:Min(1) @field:Max(9999) val inventory: Int,
+    @JsonProperty("cost") @field:Nullable val cost: Double?
 )
 
 enum class ProductType(
@@ -34,12 +36,12 @@ class Products(
 ) {
     @Valid
     @GetMapping
-    fun getAllProducts(@RequestParam(required = false) type: ProductType?): ResponseEntity<List<Product>> =
+    fun getAllProducts(@RequestParam(required = false) type: ProductType?): ResponseEntity<List<ProductDetails>> =
         ResponseEntity.ok(db.findAll(type).toList())
 
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     fun createProduct(
-        @Valid @RequestBody product: Product,
+        @Valid @RequestBody product: ProductDetails,
     ): ResponseEntity<Map<String, Int>> {
         val id = db.save(product)
         return ResponseEntity(mapOf("id" to id), HttpStatusCode.valueOf(201))
@@ -47,24 +49,24 @@ class Products(
 }
 
 interface ProductRepo {
-    fun findAll(type: ProductType?): List<Product>
+    fun findAll(type: ProductType?): List<ProductDetails>
 
-    fun save(product: Product): Int
+    fun save(product: ProductDetails): Int
 }
 
 @Repository
 class ProductDb : ProductRepo {
     private var PRODUCTS = mutableMapOf(
-        1 to Product(1, "Game of Thrones", ProductType.book, 50),
-        2 to Product(2, "Milk", ProductType.food, 100),
-        3 to Product(3, "Camera", ProductType.gadget, 10),
-        4 to Product(4, "iPhone", ProductType.gadget, 2),
-        5 to Product(5, "Binoculars", ProductType.other, 10),
+        1 to ProductDetails(1, "Game of Thrones", ProductType.book, 50, 200.0),
+        2 to ProductDetails(2, "Milk", ProductType.food, 100, 45.0),
+        3 to ProductDetails(3, "Camera", ProductType.gadget, 10, 25000.0),
+        4 to ProductDetails(4, "iPhone", ProductType.gadget, 2, 50000.0),
+        5 to ProductDetails(5, "Binoculars", ProductType.other, 10, 12000.0),
     )
 
-    override fun findAll(type: ProductType?): List<Product> = PRODUCTS.values.filter { it.type == type }.toList()
+    override fun findAll(type: ProductType?): List<ProductDetails> = PRODUCTS.values.filter { it.type == type }.toList()
 
-    override fun save(product: Product): Int {
+    override fun save(product: ProductDetails): Int {
         PRODUCTS.putIfAbsent(PRODUCTS.size + 1, product)
         return PRODUCTS.size
     }
