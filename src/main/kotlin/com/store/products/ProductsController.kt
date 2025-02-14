@@ -2,6 +2,7 @@ package com.store.products
 
 import com.store.products.db.ProductRepo
 import jakarta.validation.Valid
+import kotlinx.coroutines.runBlocking
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
@@ -18,13 +19,13 @@ class ProductsController(
     @Valid
     @GetMapping
     fun getAllProducts(@RequestParam(required = false) type: ProductType?): ResponseEntity<List<ProductDetails>> =
-        ResponseEntity.ok(db.findAll(type).toList())
+        ResponseEntity.ok(db.findAll(type))
 
     @PostMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     fun createProduct(
         @Valid @RequestBody product: ProductDetails,
     ): ResponseEntity<Map<String, Int>> {
-        val id = db.save(product)
+        val id = runBlocking { db.save(product) }
         return ResponseEntity(mapOf("id" to id), HttpStatusCode.valueOf(201))
     }
 }
