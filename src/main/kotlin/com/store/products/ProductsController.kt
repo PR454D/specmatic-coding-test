@@ -2,7 +2,6 @@ package com.store.products
 
 import com.store.products.db.ProductRepo
 import jakarta.validation.Valid
-import kotlinx.coroutines.runBlocking
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
@@ -25,7 +24,7 @@ class ProductsController(
     fun createProduct(
         @Valid @RequestBody product: ProductDetails,
     ): ResponseEntity<Map<String, Int>> {
-        val id = runBlocking { db.save(product) }
+        val id = db.save(product)
         return ResponseEntity(mapOf("id" to id), HttpStatusCode.valueOf(201))
     }
 }
@@ -38,9 +37,9 @@ class ValidationExceptionHandler {
             mapOf(
                 "timestamp" to LocalDateTime.now().toString(),
                 "status" to HttpStatus.BAD_REQUEST.value(),
-                "error" to "Validation failed",
+                "error" to "Validation failed for ${ex.localizedMessage}",
                 "path" to "/products",
-            )
+            ),
         )
     }
 }
