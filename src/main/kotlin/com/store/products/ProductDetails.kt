@@ -5,7 +5,7 @@ import jakarta.annotation.Nullable
 import jakarta.validation.constraints.*
 
 data class ProductDetails(
-    @JsonProperty("id") var id: Int,
+    @JsonProperty("id") var id: Int?,
     @JsonProperty("name") @field:Pattern(
         regexp = "(?!true|false|null)[a-zA-Z]+",
         message = "should be a string",
